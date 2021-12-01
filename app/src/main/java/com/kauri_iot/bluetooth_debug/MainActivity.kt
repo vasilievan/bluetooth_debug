@@ -163,6 +163,7 @@ class MainActivity : ComponentActivity() {
                 value = mac,
                 onValueChange = {
                     mac = it
+                    this@MainActivity.mac = mac
                 },
                 label = { Text("Mак") }
             )
