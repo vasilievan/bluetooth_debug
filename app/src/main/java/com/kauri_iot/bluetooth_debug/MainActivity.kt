@@ -30,11 +30,11 @@ import kotlin.random.Random
 class MainActivity : ComponentActivity() {
     private val laptop = "88:78:73:2B:D9:F9"
     private val pc = "8C:88:2B:00:8A:89"
+    private var mac: String = "88:78:73:2B:D9:F9"
     private lateinit var receiver: Receiver
     private lateinit var manager: BluetoothManager
     private lateinit var adapter: BluetoothAdapter
     private lateinit var liveData: MutableLiveData<BluetoothDevice>
-    var mac: String = "88:78:73:2B:D9:F9"
 
     override fun onResume() {
         registerBroadcastReceiver()
@@ -60,6 +60,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun connect(mac: String) {
+        if (adapter.bondedDevices.any { it.address == mac }) {
+            Toast.makeText(this, "Уже запарены!", Toast.LENGTH_LONG).show()
+            return
+        }
         adapter.startDiscovery()
         liveData.observe(this, {
             if (it.address == mac) {
@@ -68,16 +72,8 @@ class MainActivity : ComponentActivity() {
                 adapter.cancelDiscovery()
             }
         })
-        thread {
-            try {
-                runOnUiThread {
-                    Toast.makeText(this, "Присоединяюсь...", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    Toast.makeText(this, "Упс: $e", Toast.LENGTH_LONG).show()
-                }
-            }
+        runOnUiThread {
+            Toast.makeText(this, "Присоединяюсь...", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -132,7 +128,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         askForPermissions()
-        receiver = Receiver(this)
+        receiver = Receiver()
         liveData = receiver.device
         manager = applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         adapter = manager.adapter
